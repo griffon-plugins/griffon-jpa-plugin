@@ -163,7 +163,7 @@ class JpaSpec extends Specification {
         }
 
         List peopleOut = entityManagerHandler.withEntityManager('people') { String persistenceUnitName, EntityManager entityManager ->
-            entityManager.createQuery('select p from Person p').singleResult .collect([]) { it.asMap() }
+            entityManager.createQuery('select p from Person p').resultList.collect([]) { it.asMap() }
         }
 
         then:
