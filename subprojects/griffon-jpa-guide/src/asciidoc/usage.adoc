@@ -1,0 +1,226 @@
+
+[[_Usage]]
+= Usage
+
+The following sections describe how you may use this plugin in an project.
+
+== Configuration
+
+You must create a configuration file named `Jpa` that holds the settings for creating instances of `{link_entity_manager}`.
+This file follows the same standard configuration mechanism as the application's `Config` file, which means you can define the
+configuration using
+
+ * a properties file
+ * a Java file
+ * a Groovy script
+
+The following example shows the default settings needed to connect the default database taking into account that each
+environment may connect to a different database.
+
+[source,groovy,options="nowrap"]
+.src/main/resources/Jpa.groovy
+----
+include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=16..32]
+----
+
+You may configure multiple named persistence units (the default unit is aptly named `default`) as the following snippet
+shows
+
+[source,groovy,options="nowrap"]
+.src/main/resources/Jpa.groovy
+----
+include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=34..-1]
+----
+
+NOTE: Don't forget to add `META-INF/persistence.xml` to your project.
+
+The following properties are optional
+
+[cols="4*",options="header"]
+|===
+
+| Property           | Type    | Default | Description
+| connect_on_startup | boolean | false   | Establishes a connection to the database at the beginning of the `Startup` phase.
+
+|===
+
+The plugin's <<_modules, module>> registers a `{api_entity_manager_handler}` helper class that defines the base contract
+for accessing a database and issue SQL queries to it. This class has the following methods
+
+[source,java,options="nowrap"]
+.griffon.plugins.jpa.EntityManagerHandler.java
+----
+include::{path_griffon_jpa_core}/src/main/java//griffon/plugins/jpa/EntityManagerHandler.java[tags=methods,indent=0]
+----
+
+These method are aware of multiple persistence units. If no persistenceUnitName is specified when calling them then the default
+persistence unit will be selected. You can inject an instance of this class anywhere it's needed using `@Inject`. There is one
+callback you may use with this method: `{api_entity_manager_callback}`.
+
+This callback is defined using a functional interface approach, which means you can apply lambda expressions if running
+with JDK8+ or closures if running Groovy.
+
+[source,java,options="nowrap"]
+.griffon.plugins.jpa.EntityManagerCallback.java
+----
+include::{path_griffon_jpa_core}/src/main/java/griffon/plugins/jpa/EntityManagerCallback.java[lines=24..-1]
+----
+
+=== Bootstrap
+
+You may execute arbitrary database calls during connection and disconnection from a `{link_entity_manager}`. Simply
+create a class that implements the `{api_jpa_bootstrap}` interface and register it within a module, for example
+
+[source,java,options="nowrap"]
+.src/main/java/com/acme/SampleJpaBootstrap.java
+----
+package com.acme;
+
+import javax.persistence.EntityManager;
+
+import javax.annotation.Nonnull;
+import javax.inject.Named;
+
+@Named("sample")
+public class SampleJpaBootstrap implements JpaBootstrap {
+    @Override
+    public void init(@Nonnull String persistenceUnitName, @Nonnull EntityManager entityManager) {
+        // operations after first connection to database
+    }
+
+    @Override
+    public void destroy(@Nonnull String persistenceUnitName, @Nonnull EntityManager entityManager) {
+        // operations before disconnecting from the database
+    }
+}
+----
+
+[source,java,options="nowrap"]
+.src/main/java/com/acme/ApplicationModule.java
+----
+package com.acme;
+
+import griffon.plugins.jpa.JpaBootstrap;
+import griffon.core.injection.Module;
+import org.codehaus.griffon.runtime.core.injection.AbstractModule;
+import org.kordamp.jipsy.ServiceProviderFor;
+
+@ServiceProviderFor(Module.class)
+public class ApplicationModule extends AbstractModule {
+    @Override
+    protected void doConfigure() {
+        bind(JpaBootstrap.class)
+            .to(SampleJpaBootstrap.class)
+            .asSingleton();
+    }
+}
+----
+
+== Example
+
+The following is a trivial usage of the `{api_entity_manager_handler}` inside a Java service
+
+[source,java,options="nowrap"]
+.com.acme.SampleService.java
+----
+package com.acme;
+
+import griffon.core.artifact.GriffonService;
+import griffon.metadata.ArtifactProviderFor;
+import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonService;
+
+import griffon.plugins.jpa.EntityManagerHandler;
+import griffon.plugins.jpa.EntityManagerCallback;
+import javax.persistence.EntityManager;
+
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
+
+@ArtifactProviderFor(GriffonService.class)
+public class SampleService extends AbstractGriffonService {
+    @Inject
+    private EntityManagerHandler entityManagerHandler;
+
+    public String getPersonName(final int id) {
+         return entityManagerHandler.withEntityManager(new EntityManagerCallback<String>() {
+             public String handle(@Nonnull String persistenceUnitName, @Nonnull EntityManager entityManager) {
+                 Person p = (Person) entityManager.createQuery('select p from Person p').getSingleResult();
+                 return p != null ? p.gteName() : null;
+         });
+    }
+}
+----
+
+Here's the Groovy version of it
+
+[source,groovy,options="nowrap"]
+.com.acme.SampleService.groovy
+----
+package com.acme
+
+import griffon.core.artifact.GriffonService
+import griffon.metadata.ArtifactProviderFor
+
+import griffon.plugins.jpa.EntityManagerHandler
+import javax.persistence.EntityManager
+
+import javax.inject.Inject
+
+@ArtifactProviderFor(GriffonService)
+class SampleService {
+    @Inject
+    private EntityManagerHandler entityManagerHandler
+
+    String getPersonName(int id) {
+         entityManagerHandler.withEntityManager { String persistenceUnitName, EntityManager entityManager ->
+             entityManager.createQuery('select p from Person p').singleResult?.name ?: null
+         }
+    }
+}
+----
+
+== Events
+
+The following events will be triggered by `{api_entity_manager_handler}`
+
+JpaConnectStart(String persistenceUnitName, Map<String, Object> config):: Triggered before connecting to the database.
+JpaConnectEnd(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered after connecting to the database.
+JpaDisconnectStart(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered before disconnecting from the database.
+JpaDisconnectEnd(String persistenceUnitName, Map<String, Object> config):: Triggered after disconnecting from the database.
+
+NOTE: DataSource events may be triggered during connection and disconnection from a `{link_entity_manager}`.
+
+== AST Transformation
+
+You can apply the `{api_entity_manager_aware}` AST transformation on any class. This injects the behavior of `{api_entity_manager_handler}`
+into said class. The previous Groovy service example can be rewritten as follows
+
+[source,groovy,options="nowrap"]
+.com.acme.SampleService.groovy
+----
+package com.acme
+
+import griffon.core.artifact.GriffonService
+import griffon.metadata.ArtifactProviderFor
+import griffon.transform.EntityManagerAware
+
+import com.j256.jpa.support.EntityManager
+
+@EntityManagerAware
+@ArtifactProviderFor(GriffonService)
+class SampleService {
+    String getPersonName(int id) {
+         withEntityManager { String persistenceUnitName, EntityManager entityManager ->
+             entityManager.createQuery('select p from Person p').singleResult?.name ?: null
+         }
+    }
+}
+----
+
+== DSL Descriptors
+
+This plugin provides DSL descriptors for Intellij IDEA and Eclipse (provided you have the Groovy Eclipse plugin installed).
+These descriptors are found inside the `griffon-jpa-groovy-compile-{project-version}.jar`, with locations
+
+ * dsdl/griffon_jpa.dsld
+ * gdsl/griffon_jpa.gdsl
