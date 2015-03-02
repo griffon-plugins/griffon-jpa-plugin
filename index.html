@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.2">
+<meta name="author" content="Andres Almiray">
+<title>Griffon JPA Plugin</title>
+<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="./coderay-asciidoctor.css">
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<h1>Griffon JPA Plugin</h1>
+<div class="details">
+<span id="author" class="author">Andres Almiray</span><br>
+<span id="revnumber">version 1.0.0</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_introduction">1. Introduction</a></li>
+<li><a href="#_Usage">2. Usage</a>
+<ul class="sectlevel2">
+<li><a href="#_configuration">2.1. Configuration</a>
+<ul class="sectlevel3">
+<li><a href="#_bootstrap">2.1.1. Bootstrap</a></li>
+</ul>
+</li>
+<li><a href="#_example">2.2. Example</a></li>
+<li><a href="#_events">2.3. Events</a></li>
+<li><a href="#_ast_transformation">2.4. AST Transformation</a></li>
+<li><a href="#_dsl_descriptors">2.5. DSL Descriptors</a></li>
+</ul>
+</li>
+<li><a href="#_configuration">3. Build Configuration</a>
+<ul class="sectlevel2">
+<li><a href="#_gradle">3.1. Gradle</a>
+<ul class="sectlevel3">
+<li><a href="#_automatic">3.1.1. Automatic</a></li>
+<li><a href="#_manual">3.1.2. Manual</a></li>
+</ul>
+</li>
+<li><a href="#_maven">3.2. Maven</a></li>
+</ul>
+</li>
+<li><a href="#_modules">4. Modules</a>
+<ul class="sectlevel2">
+<li><a href="#_jpa">4.1. Jpa</a></li>
+</ul>
+</li>
+<li><a href="#_links">5. Links</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <a href="http://en.wikipedia.org/wiki/Java_Persistence_API" target="_blank">JPA</a> plugin enables lightweight access multiple SQL databases.
+This plugin does NOT provide domain classes nor dynamic finders like GORM does.</p>
+</div>
+<div class="paragraph">
+<p>Griffon version: 2.2.0</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_Usage"><a class="anchor" href="#_Usage"></a>2. Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following sections describe how you may use this plugin in an project.</p>
+</div>
+<div class="sect2">
+<h3 id="_configuration"><a class="anchor" href="#_configuration"></a>2.1. Configuration</h3>
+<div class="paragraph">
+<p>You must create a configuration file named <code>Jpa</code> that holds the settings for creating instances of <code><a href="http://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html" target="_blank">EntityManager</a></code>.
+This file follows the same standard configuration mechanism as the application&#8217;s <code>Config</code> file, which means you can define the
+configuration using</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a properties file</p>
+</li>
+<li>
+<p>a Java file</p>
+</li>
+<li>
+<p>a Groovy script</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following example shows the default settings needed to connect the default database taking into account that each
+environment may connect to a different database.</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/Jpa.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy">persistenceUnit {
+    factory {
+
+    }
+    entitiyManager {
+
+    }
+}
+
+environments {
+    development {
+    }
+    test {
+    }
+    production {
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may configure multiple named persistence units (the default unit is aptly named <code>default</code>) as the following snippet
+shows</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/resources/Jpa.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy">persistenceUnits {
+    internal {
+    }
+    people {
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Don&#8217;t forget to add <code>META-INF/persistence.xml</code> to your project.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following properties are optional</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">connect_on_startup</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Establishes a connection to the database at the beginning of the <code>Startup</code> phase.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The plugin&#8217;s <a href="#_modules">module</a> registers a <code><a href="api/griffon/plugins/jpa/EntityManagerHandler.html" target="_blank">EntityManagerHandler</a></code> helper class that defines the base contract
+for accessing a database and issue SQL queries to it. This class has the following methods</p>
+</div>
+<div class="listingblock">
+<div class="title">griffon.plugins.jpa.EntityManagerHandler.java</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java"><span class="annotation">@Nullable</span>
+&lt;R&gt; R withEntityManager(<span class="annotation">@Nonnull</span> EntityManagerCallback&lt;R&gt; callback);
+
+<span class="annotation">@Nullable</span>
+&lt;R&gt; R withEntityManager(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName, <span class="annotation">@Nonnull</span> EntityManagerCallback&lt;R&gt; callback);
+
+<span class="type">void</span> closeEntityManager();
+
+<span class="type">void</span> closeEntityManager(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These method are aware of multiple persistence units. If no persistenceUnitName is specified when calling them then the default
+persistence unit will be selected. You can inject an instance of this class anywhere it&#8217;s needed using <code>@Inject</code>. There is one
+callback you may use with this method: <code><a href="api/griffon/plugins/jpa/EntityManagerCallback.html" target="_blank">EntityManagerCallback</a></code>.</p>
+</div>
+<div class="paragraph">
+<p>This callback is defined using a functional interface approach, which means you can apply lambda expressions if running
+with JDK8+ or closures if running Groovy.</p>
+</div>
+<div class="listingblock">
+<div class="title">griffon.plugins.jpa.EntityManagerCallback.java</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java"><span class="directive">public</span> <span class="type">interface</span> <span class="class">EntityManagerCallback</span>&lt;R&gt; {
+    R handle(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName, <span class="annotation">@Nonnull</span> EntityManager entityManager);
+}</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_bootstrap"><a class="anchor" href="#_bootstrap"></a>2.1.1. Bootstrap</h4>
+<div class="paragraph">
+<p>You may execute arbitrary database calls during connection and disconnection from a <code><a href="http://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html" target="_blank">EntityManager</a></code>. Simply
+create a class that implements the <code><a href="api/griffon/plugins/jpa/JpaBootstrap.html" target="_blank">JpaBootstrap</a></code> interface and register it within a module, for example</p>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/acme/SampleJpaBootstrap.java</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">com.acme</span>;
+
+<span class="keyword">import</span> <span class="include">javax.persistence.EntityManager</span>;
+
+<span class="keyword">import</span> <span class="include">javax.annotation.Nonnull</span>;
+<span class="keyword">import</span> <span class="include">javax.inject.Named</span>;
+
+<span class="annotation">@Named</span>(<span class="string"><span class="delimiter">&quot;</span><span class="content">sample</span><span class="delimiter">&quot;</span></span>)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SampleJpaBootstrap</span> <span class="directive">implements</span> JpaBootstrap {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> init(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName, <span class="annotation">@Nonnull</span> EntityManager entityManager) {
+        <span class="comment">// operations after first connection to database</span>
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> destroy(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName, <span class="annotation">@Nonnull</span> EntityManager entityManager) {
+        <span class="comment">// operations before disconnecting from the database</span>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/main/java/com/acme/ApplicationModule.java</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">com.acme</span>;
+
+<span class="keyword">import</span> <span class="include">griffon.plugins.jpa.JpaBootstrap</span>;
+<span class="keyword">import</span> <span class="include">griffon.core.injection.Module</span>;
+<span class="keyword">import</span> <span class="include">org.codehaus.griffon.runtime.core.injection.AbstractModule</span>;
+<span class="keyword">import</span> <span class="include">org.kordamp.jipsy.ServiceProviderFor</span>;
+
+<span class="annotation">@ServiceProviderFor</span>(Module.class)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">ApplicationModule</span> <span class="directive">extends</span> AbstractModule {
+    <span class="annotation">@Override</span>
+    <span class="directive">protected</span> <span class="type">void</span> doConfigure() {
+        bind(JpaBootstrap.class)
+            .to(SampleJpaBootstrap.class)
+            .asSingleton();
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example"><a class="anchor" href="#_example"></a>2.2. Example</h3>
+<div class="paragraph">
+<p>The following is a trivial usage of the <code><a href="api/griffon/plugins/jpa/EntityManagerHandler.html" target="_blank">EntityManagerHandler</a></code> inside a Java service</p>
+</div>
+<div class="listingblock">
+<div class="title">com.acme.SampleService.java</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">com.acme</span>;
+
+<span class="keyword">import</span> <span class="include">griffon.core.artifact.GriffonService</span>;
+<span class="keyword">import</span> <span class="include">griffon.metadata.ArtifactProviderFor</span>;
+<span class="keyword">import</span> <span class="include">org.codehaus.griffon.runtime.core.artifact.AbstractGriffonService</span>;
+
+<span class="keyword">import</span> <span class="include">griffon.plugins.jpa.EntityManagerHandler</span>;
+<span class="keyword">import</span> <span class="include">griffon.plugins.jpa.EntityManagerCallback</span>;
+<span class="keyword">import</span> <span class="include">javax.persistence.EntityManager</span>;
+
+<span class="keyword">import</span> <span class="include">javax.annotation.Nonnull</span>;
+<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>;
+
+<span class="annotation">@ArtifactProviderFor</span>(GriffonService.class)
+<span class="directive">public</span> <span class="type">class</span> <span class="class">SampleService</span> <span class="directive">extends</span> AbstractGriffonService {
+    <span class="annotation">@Inject</span>
+    <span class="directive">private</span> EntityManagerHandler entityManagerHandler;
+
+    <span class="directive">public</span> <span class="predefined-type">String</span> getPersonName(<span class="directive">final</span> <span class="type">int</span> id) {
+         <span class="keyword">return</span> entityManagerHandler.withEntityManager(<span class="keyword">new</span> EntityManagerCallback&lt;<span class="predefined-type">String</span>&gt;() {
+             <span class="directive">public</span> <span class="predefined-type">String</span> handle(<span class="annotation">@Nonnull</span> <span class="predefined-type">String</span> persistenceUnitName, <span class="annotation">@Nonnull</span> EntityManager entityManager) {
+                 Person p = (Person) entityManager.createQuery(<span class="string"><span class="delimiter">'</span><span class="content">select p from Person p</span><span class="delimiter">'</span></span>).getSingleResult();
+                 <span class="keyword">return</span> p != <span class="predefined-constant">null</span> ? p.gteName() : <span class="predefined-constant">null</span>;
+         });
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here&#8217;s the Groovy version of it</p>
+</div>
+<div class="listingblock">
+<div class="title">com.acme.SampleService.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy"><span class="keyword">package</span> com.acme
+
+<span class="keyword">import</span> <span class="include">griffon.core.artifact.GriffonService</span>
+<span class="keyword">import</span> <span class="include">griffon.metadata.ArtifactProviderFor</span>
+
+<span class="keyword">import</span> <span class="include">griffon.plugins.jpa.EntityManagerHandler</span>
+<span class="keyword">import</span> <span class="include">javax.persistence.EntityManager</span>
+
+<span class="keyword">import</span> <span class="include">javax.inject.Inject</span>
+
+<span class="annotation">@ArtifactProviderFor</span>(GriffonService)
+<span class="type">class</span> <span class="class">SampleService</span> {
+    <span class="annotation">@Inject</span>
+    <span class="directive">private</span> EntityManagerHandler entityManagerHandler
+
+    <span class="predefined-type">String</span> getPersonName(<span class="type">int</span> id) {
+         entityManagerHandler.withEntityManager { <span class="predefined-type">String</span> persistenceUnitName, EntityManager entityManager -&gt;
+             entityManager.createQuery(<span class="string"><span class="delimiter">'</span><span class="content">select p from Person p</span><span class="delimiter">'</span></span>).singleResult?.name ?: <span class="predefined-constant">null</span>
+         }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_events"><a class="anchor" href="#_events"></a>2.3. Events</h3>
+<div class="paragraph">
+<p>The following events will be triggered by <code><a href="api/griffon/plugins/jpa/EntityManagerHandler.html" target="_blank">EntityManagerHandler</a></code></p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">JpaConnectStart(String persistenceUnitName, Map&lt;String, Object&gt; config)</dt>
+<dd>
+<p>Triggered before connecting to the database.</p>
+</dd>
+<dt class="hdlist1">JpaConnectEnd(String persistenceUnitName, Map&lt;String, Object&gt; config, EntityManager entityManager)</dt>
+<dd>
+<p>Triggered after connecting to the database.</p>
+</dd>
+<dt class="hdlist1">JpaDisconnectStart(String persistenceUnitName, Map&lt;String, Object&gt; config, EntityManager entityManager)</dt>
+<dd>
+<p>Triggered before disconnecting from the database.</p>
+</dd>
+<dt class="hdlist1">JpaDisconnectEnd(String persistenceUnitName, Map&lt;String, Object&gt; config)</dt>
+<dd>
+<p>Triggered after disconnecting from the database.</p>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+DataSource events may be triggered during connection and disconnection from a <code><a href="http://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html" target="_blank">EntityManager</a></code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ast_transformation"><a class="anchor" href="#_ast_transformation"></a>2.4. AST Transformation</h3>
+<div class="paragraph">
+<p>You can apply the <code><a href="api/griffon/transform/EntityManagerAware.html" target="_blank">@EntityManagerAware</a></code> AST transformation on any class. This injects the behavior of <code><a href="api/griffon/plugins/jpa/EntityManagerHandler.html" target="_blank">EntityManagerHandler</a></code>
+into said class. The previous Groovy service example can be rewritten as follows</p>
+</div>
+<div class="listingblock">
+<div class="title">com.acme.SampleService.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy"><span class="keyword">package</span> com.acme
+
+<span class="keyword">import</span> <span class="include">griffon.core.artifact.GriffonService</span>
+<span class="keyword">import</span> <span class="include">griffon.metadata.ArtifactProviderFor</span>
+<span class="keyword">import</span> <span class="include">griffon.transform.EntityManagerAware</span>
+
+<span class="keyword">import</span> <span class="include">com.j256.jpa.support.EntityManager</span>
+
+<span class="annotation">@EntityManagerAware</span>
+<span class="annotation">@ArtifactProviderFor</span>(GriffonService)
+<span class="type">class</span> <span class="class">SampleService</span> {
+    <span class="predefined-type">String</span> getPersonName(<span class="type">int</span> id) {
+         withEntityManager { <span class="predefined-type">String</span> persistenceUnitName, EntityManager entityManager -&gt;
+             entityManager.createQuery(<span class="string"><span class="delimiter">'</span><span class="content">select p from Person p</span><span class="delimiter">'</span></span>).singleResult?.name ?: <span class="predefined-constant">null</span>
+         }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dsl_descriptors"><a class="anchor" href="#_dsl_descriptors"></a>2.5. DSL Descriptors</h3>
+<div class="paragraph">
+<p>This plugin provides DSL descriptors for Intellij IDEA and Eclipse (provided you have the Groovy Eclipse plugin installed).
+These descriptors are found inside the <code>griffon-jpa-groovy-compile-1.0.0.jar</code>, with locations</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>dsdl/griffon_jpa.dsld</p>
+</li>
+<li>
+<p>gdsl/griffon_jpa.gdsl</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>3. Build Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_gradle"><a class="anchor" href="#_gradle"></a>3.1. Gradle</h3>
+<div class="paragraph">
+<p>You have two options for configuring this plugin: automatic and manual.</p>
+</div>
+<div class="sect3">
+<h4 id="_automatic"><a class="anchor" href="#_automatic"></a>3.1.1. Automatic</h4>
+<div class="paragraph">
+<p>As long as the project has the <code>org.codehaus.griffon.griffon</code> plugin applied to it you
+may include the following snippet in <code>build.gradle</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy">dependencies {
+    griffon 'org.codehaus.griffon.plugins:griffon-jpa-plugin:1.0.0'
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>griffon</code> plugin will take care of the rest given its configuration.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_manual"><a class="anchor" href="#_manual"></a>3.1.2. Manual</h4>
+<div class="paragraph">
+<p>You will need to configure any of the following blocks depending on your setup</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy">dependencies {
+    compile 'org.codehaus.griffon.plugins:griffon-jpa-core:1.0.0'
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Compile Only</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="groovy">dependencies {
+    compileOnly 'org.codehaus.griffon.plugins:griffon-jpa-groovy-compile:1.0.0'
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_maven"><a class="anchor" href="#_maven"></a>3.2. Maven</h3>
+<div class="paragraph">
+<p>First configure the <code>griffon-jpa-plugin</code> BOM in your POM file, by placing the following
+snippet before the <code>&lt;build&gt;</code> element</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="xml"><span class="tag">&lt;dependencyManagement&gt;</span>
+    <span class="tag">&lt;dependencies&gt;</span>
+        <span class="tag">&lt;dependency&gt;</span>
+            <span class="tag">&lt;groupId&gt;</span>org.codehaus.griffon.plugins<span class="tag">&lt;/groupId&gt;</span>
+            <span class="tag">&lt;artifactId&gt;</span>griffon-jpa-plugin<span class="tag">&lt;/artifactId&gt;</span>
+            <span class="tag">&lt;version&gt;</span>1.0.0<span class="tag">&lt;/version&gt;</span>
+            <span class="tag">&lt;type&gt;</span>pom<span class="tag">&lt;/type&gt;</span>
+            <span class="tag">&lt;scope&gt;</span>import<span class="tag">&lt;/scope&gt;</span>
+        <span class="tag">&lt;/dependency&gt;</span>
+    <span class="tag">&lt;/dependencies&gt;</span>
+<span class="tag">&lt;/dependencyManagement&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next configure dependencies as required by your particular setup</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.codehaus.griffon.plugins<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>griffon-jpa-core<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Provided scope</div>
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="xml"><span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.codehaus.griffon.plugins<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>griffon-jpa-groovy-compile<span class="tag">&lt;/artifactId&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Don&#8217;t forget to configure all <code>-compile</code> dependencies with the maven-surefire-plugin, like so</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="xml"><span class="tag">&lt;plugin&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>maven-surefire-plugin<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;configuration&gt;</span>
+        <span class="tag">&lt;classpathDependencyExcludes&gt;</span>
+            <span class="tag">&lt;classpathDependencyExclude&gt;</span>
+                org.codehaus.griffon:griffon-jpa-groovy-compile
+            <span class="tag">&lt;/classpathDependencyExclude&gt;</span>
+        <span class="tag">&lt;/classpathDependencyExcludes&gt;</span>
+    <span class="tag">&lt;/configuration&gt;</span>
+<span class="tag">&lt;/plugin&gt;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_modules"><a class="anchor" href="#_modules"></a>4. Modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following sections display all bindings per module. Use this information to
+successfully override a binding on your own modules or to troubleshoot a module
+binding if the wrong type has been applied by the Griffon runtime.</p>
+</div>
+<div class="sect2">
+<h3 id="_jpa"><a class="anchor" href="#_jpa"></a>4.1. Jpa</h3>
+<div class="paragraph">
+<p>Module name: <code>jpa</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight nowrap"><code data-lang="java">bind(<span class="predefined-type">ResourceBundle</span>.class)
+    .withClassifier(named(<span class="string"><span class="delimiter">&quot;</span><span class="content">jpa</span><span class="delimiter">&quot;</span></span>))
+    .toProvider(<span class="keyword">new</span> ResourceBundleProvider(<span class="string"><span class="delimiter">&quot;</span><span class="content">Jpa</span><span class="delimiter">&quot;</span></span>))
+    .asSingleton();
+
+bind(<span class="predefined-type">Configuration</span>.class)
+    .withClassifier(named(<span class="string"><span class="delimiter">&quot;</span><span class="content">jpa</span><span class="delimiter">&quot;</span></span>))
+    .to(DefaultJpaConfiguration.class)
+    .asSingleton();
+
+bind(JpaSettingsStorage.class)
+    .to(DefaultJpaSettingsStorage.class)
+    .asSingleton();
+
+bind(JpaSettingsFactory.class)
+    .to(DefaultJpaSettingsFactory.class)
+    .asSingleton();
+
+bind(EntityManagerHandler.class)
+    .to(DefaultEntityManagerHandler.class)
+    .asSingleton();
+
+bind(GriffonAddon.class)
+    .to(JpaAddon.class)
+    .asSingleton();</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_links"><a class="anchor" href="#_links"></a>5. Links</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="api/index.html" target="_blank">Javadoc</a></p>
+</div>
+<div class="paragraph">
+<p><a href="api-src/index.html" target="_blank">API Sources</a></p>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 1.0.0<br>
+Last updated 2015-03-02 12:04:33 CET
+</div>
+</div>
+</body>
+</html>

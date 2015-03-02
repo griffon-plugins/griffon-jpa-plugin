@@ -1,0 +1,4 @@
+griffon.plugins.jpa
+griffon.transform
+org.codehaus.griffon.runtime.jmx
+org.codehaus.griffon.runtime.jpa
