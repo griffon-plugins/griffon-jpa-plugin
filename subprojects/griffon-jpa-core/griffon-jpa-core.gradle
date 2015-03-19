@@ -11,17 +11,14 @@ apply from: rootProject.file('gradle/code-coverage.gradle')
 
 dependencies {
     compile 'org.codehaus.griffon.plugins:griffon-monitor-core:1.1.0'
+    compile 'org.eclipse.persistence:javax.persistence:2.1.0'
 
-    compile 'javax.persistence:persistence-api:1.0.2'
-
-    testRuntime('com.h2database:h2:1.4.185') { transitive = false }
+    testRuntime('com.h2database:h2:1.4.186') { transitive = false }
     testRuntime "org.slf4j:slf4j-simple:1.7.10"
 
     testRuntime "org.codehaus.griffon:griffon-guice:${griffon.version}"
     testRuntime "org.codehaus.griffon:griffon-groovy:${griffon.version}"
-    testRuntime('org.eclipse.persistence:eclipselink:2.6.0-RC1') {
-        exclude module: 'javax.persistence'
-    }
+    testRuntime('org.eclipse.persistence:eclipselink:2.6.0')
 }
 
 compileGroovy.enabled = false
