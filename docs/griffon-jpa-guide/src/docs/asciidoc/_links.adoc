@@ -1,6 +1,6 @@
 
 :link_jpa: link:http://en.wikipedia.org/wiki/Java_Persistence_API[JPA, window="_blank"]
-:link_entity_manager: link:http://docs.oracle.com/javaee/7/api/javax/persistence/EntityManager.html[EntityManager, window="_blank"]
+:link_entity_manager: link:https://jakarta.ee/specifications/persistence/2.2/apidocs/javax/persistence/EntityManager.html[EntityManager, window="_blank"]
 :api_entity_manager_handler: link:api/griffon/plugins/jpa/EntityManagerHandler.html[EntityManagerHandler, window="_blank"]
 :api_entity_manager_callback: link:api/griffon/plugins/jpa/EntityManagerCallback.html[EntityManagerCallback, window="_blank"]
 :api_entity_manager_aware: link:api/griffon/transform/EntityManagerAware.html[@EntityManagerAware, window="_blank"]

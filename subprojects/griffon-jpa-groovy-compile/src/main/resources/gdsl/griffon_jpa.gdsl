@@ -20,6 +20,6 @@ import com.intellij.patterns.*
  * @author Andres Almiray
  */
 
-contributor(scope: annotatedScope(ctype: 'griffon.transform.EntityManagerAware')) {
+contributor(scope: annotatedScope(ctype: 'griffon.transform.jpa.EntityManagerAware')) {
     delegatesTo(findClass('griffon.plugins.jpa.EntityManagerHandler'))
 }

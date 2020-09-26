@@ -24,7 +24,7 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression
 
 supportsVersion(groovyEclipse: '2.5.1')
 
-contribute(enclosingClass(annotatedBy('griffon.transform.EntityManagerAware'))) {
+contribute(enclosingClass(annotatedBy('griffon.transform.jpa.EntityManagerAware'))) {
     provider = 'griffon-jpa'
     delegatesTo 'griffon.plugins.jpa.EntityManagerHandler'
 }

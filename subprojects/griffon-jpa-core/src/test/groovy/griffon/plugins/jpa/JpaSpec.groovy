@@ -1,11 +1,13 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2014-2020 The author and/or original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,14 +17,18 @@
  */
 package griffon.plugins.jpa
 
+import griffon.annotations.inject.BindTo
 import griffon.core.GriffonApplication
-import griffon.core.RunnableWithArgs
-import griffon.core.test.GriffonUnitRule
-import griffon.inject.BindTo
+import griffon.plugins.jpa.events.JpaConnectEndEvent
+import griffon.plugins.jpa.events.JpaConnectStartEvent
+import griffon.plugins.jpa.events.JpaDisconnectEndEvent
+import griffon.plugins.jpa.events.JpaDisconnectStartEvent
+import griffon.test.core.GriffonUnitRule
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.application.event.EventHandler
 import javax.inject.Inject
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceException
@@ -45,15 +51,11 @@ class JpaSpec extends Specification {
     void 'Open and close default entityManager'() {
         given:
         List eventNames = [
-            'JpaConnectStart', 'JpaConnectEnd',
-            'JpaDisconnectStart', 'JpaDisconnectEnd'
+            'JpaConnectStartEvent', 'JpaConnectEndEvent',
+            'JpaDisconnectStartEvent', 'JpaDisconnectEndEvent'
         ]
-        List events = []
-        eventNames.each { name ->
-            application.eventRouter.addEventListener(name, { Object... args ->
-                events << [name: name, args: args]
-            } as RunnableWithArgs)
-        }
+        TestEventHandler testEventHandler = new TestEventHandler()
+        application.eventRouter.subscribe(testEventHandler)
 
         when:
         entityManagerHandler.withEntityManager { String persistenceUnitName, EntityManager entityManager ->
@@ -64,8 +66,8 @@ class JpaSpec extends Specification {
         entityManagerHandler.closeEntityManager()
 
         then:
-        events.size() == 4
-        events.name == eventNames
+        testEventHandler.events.size() == 4
+        testEventHandler.events == eventNames
     }
 
     void 'Connect to default entityManager'() {
@@ -148,13 +150,13 @@ class JpaSpec extends Specification {
         List peopleIn = entityManagerHandler.withEntityManager('people') { String persistenceUnitName, EntityManager entityManager ->
             List<Person> people = []
             entityManager.getTransaction().begin()
-            [[id: 1, name: 'Danno',     lastname: 'Ferrin'],
-             [id: 2, name: 'Andres',    lastname: 'Almiray'],
-             [id: 3, name: 'James',     lastname: 'Williams'],
+            [[id: 1, name: 'Danno', lastname: 'Ferrin'],
+             [id: 2, name: 'Andres', lastname: 'Almiray'],
+             [id: 3, name: 'James', lastname: 'Williams'],
              [id: 4, name: 'Guillaume', lastname: 'Laforge'],
-             [id: 5, name: 'Jim',       lastname: 'Shingler'],
+             [id: 5, name: 'Jim', lastname: 'Shingler'],
              [id: 6, name: 'Alexander', lastname: 'Klein'],
-             [id: 7, name: 'Rene',      lastname: 'Groeschke']].each { data ->
+             [id: 7, name: 'Rene', lastname: 'Groeschke']].each { data ->
                 people << new Person(data)
                 entityManager.persist(people.last())
             }
@@ -172,4 +174,28 @@ class JpaSpec extends Specification {
 
     @BindTo(JpaBootstrap)
     private TestJpaBootstrap bootstrap = new TestJpaBootstrap()
+
+    private class TestEventHandler {
+        List<String> events = []
+
+        @EventHandler
+        void handleJpaConnectStartEvent(JpaConnectStartEvent event) {
+            events << event.class.simpleName
+        }
+
+        @EventHandler
+        void handleJpaConnectEndEvent(JpaConnectEndEvent event) {
+            events << event.class.simpleName
+        }
+
+        @EventHandler
+        void handleJpaDisconnectStartEvent(JpaDisconnectStartEvent event) {
+            events << event.class.simpleName
+        }
+
+        @EventHandler
+        void handleJpaDisconnectEndEvent(JpaDisconnectEndEvent event) {
+            events << event.class.simpleName
+        }
+    }
 }

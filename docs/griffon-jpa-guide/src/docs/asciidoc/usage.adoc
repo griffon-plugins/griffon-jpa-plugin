@@ -20,7 +20,7 @@ environment may connect to a different database.
 [source,groovy,options="nowrap"]
 .src/main/resources/Jpa.groovy
 ----
-include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=16..32]
+include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=18..34]
 ----
 
 You may configure multiple named persistence units (the default unit is aptly named `default`) as the following snippet
@@ -29,7 +29,7 @@ shows
 [source,groovy,options="nowrap"]
 .src/main/resources/Jpa.groovy
 ----
-include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=34..-1]
+include::{path_griffon_jpa_core}/src/test/resources/Jpa.groovy[lines=36..-1]
 ----
 
 NOTE: Don't forget to add `META-INF/persistence.xml` to your project.
@@ -38,10 +38,8 @@ The following properties are optional
 
 [cols="4*",options="header"]
 |===
-
 | Property           | Type    | Default | Description
 | connect_on_startup | boolean | false   | Establishes a connection to the database at the beginning of the `Startup` phase.
-
 |===
 
 The plugin's <<_modules, module>> registers a `{api_entity_manager_handler}` helper class that defines the base contract
@@ -63,7 +61,7 @@ with JDK8+ or closures if running Groovy.
 [source,java,options="nowrap"]
 .griffon.plugins.jpa.EntityManagerCallback.java
 ----
-include::{path_griffon_jpa_core}/src/main/java/griffon/plugins/jpa/EntityManagerCallback.java[lines=24..-1]
+include::{path_griffon_jpa_core}/src/main/java/griffon/plugins/jpa/EntityManagerCallback.java[lines=26..-1]
 ----
 
 === Bootstrap
@@ -126,8 +124,8 @@ The following is a trivial usage of the `{api_entity_manager_handler}` inside a 
 package com.acme;
 
 import griffon.core.artifact.GriffonService;
-import griffon.metadata.ArtifactProviderFor;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonService;
+import org.kordamp.jipsy.ServiceProviderFor;
 
 import griffon.plugins.jpa.EntityManagerHandler;
 import griffon.plugins.jpa.EntityManagerCallback;
@@ -136,7 +134,7 @@ import javax.persistence.EntityManager;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
-@ArtifactProviderFor(GriffonService.class)
+@ServiceProviderFor(GriffonService.class)
 public class SampleService extends AbstractGriffonService {
     @Inject
     private EntityManagerHandler entityManagerHandler;
@@ -159,14 +157,14 @@ Here's the Groovy version of it
 package com.acme
 
 import griffon.core.artifact.GriffonService
-import griffon.metadata.ArtifactProviderFor
 
 import griffon.plugins.jpa.EntityManagerHandler
 import javax.persistence.EntityManager
+import org.kordamp.jipsy.ServiceProviderFor
 
 import javax.inject.Inject
 
-@ArtifactProviderFor(GriffonService)
+@ServiceProviderFor(GriffonService)
 class SampleService {
     @Inject
     private EntityManagerHandler entityManagerHandler
@@ -183,10 +181,10 @@ class SampleService {
 
 The following events will be triggered by `{api_entity_manager_handler}`
 
-JpaConnectStart(String persistenceUnitName, Map<String, Object> config):: Triggered before connecting to the database.
-JpaConnectEnd(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered after connecting to the database.
-JpaDisconnectStart(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered before disconnecting from the database.
-JpaDisconnectEnd(String persistenceUnitName, Map<String, Object> config):: Triggered after disconnecting from the database.
+JpaConnectStartEvent(String persistenceUnitName, Map<String, Object> config):: Triggered before connecting to the database.
+JpaConnectEndEvent(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered after connecting to the database.
+JpaDisconnectStartEvent(String persistenceUnitName, Map<String, Object> config, EntityManager entityManager):: Triggered before disconnecting from the database.
+JpaDisconnectEndEvent(String persistenceUnitName, Map<String, Object> config):: Triggered after disconnecting from the database.
 
 NOTE: DataSource events may be triggered during connection and disconnection from a `{link_entity_manager}`.
 
@@ -204,10 +202,11 @@ import griffon.core.artifact.GriffonService
 import griffon.metadata.ArtifactProviderFor
 import griffon.transform.EntityManagerAware
 
-import com.j256.jpa.support.EntityManager
+import javax.persistence.EntityManager
+import org.kordamp.jipsy.ServiceProviderFor
 
 @EntityManagerAware
-@ArtifactProviderFor(GriffonService)
+@ServiceProviderFor(GriffonService)
 class SampleService {
     String getPersonName(int id) {
          withEntityManager { String persistenceUnitName, EntityManager entityManager ->

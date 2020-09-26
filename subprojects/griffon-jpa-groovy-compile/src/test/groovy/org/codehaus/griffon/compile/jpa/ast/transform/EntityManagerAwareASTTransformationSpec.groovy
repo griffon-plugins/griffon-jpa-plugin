@@ -1,11 +1,13 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2014-2020 The author and/or original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,8 +31,8 @@ class EntityManagerAwareASTTransformationSpec extends Specification {
         GroovyShell shell = new GroovyShell()
 
         when:
-        def bean = shell.evaluate('''import griffon.transform.EntityManagerAware
-        @EntityManagerAware
+        def bean = shell.evaluate('''
+        @griffon.transform.jpa.EntityManagerAware
         class Bean { }
         new Bean()
         ''')
@@ -55,16 +57,18 @@ class EntityManagerAwareASTTransformationSpec extends Specification {
         def bean = shell.evaluate('''
         import griffon.plugins.jpa.EntityManagerCallback
         import griffon.plugins.jpa.EntityManagerHandler
-        import griffon.transform.EntityManagerAware
+        import griffon.annotations.core.Nonnull
+        import griffon.annotations.core.Nullable
 
-        import javax.annotation.Nonnull
-        @EntityManagerAware
+        @griffon.transform.jpa.EntityManagerAware
         class EntityManagerHandlerBean implements EntityManagerHandler {
             @Override
+            @Nullable
             public <R> R withEntityManager(@Nonnull EntityManagerCallback<R> callback)  {
                 return null
             }
             @Override
+            @Nullable
             public <R> R withEntityManager(@Nonnull String persistenceUnitName, @Nonnull EntityManagerCallback<R> callback)  {
                  return null
             }

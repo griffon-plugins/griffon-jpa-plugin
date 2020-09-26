@@ -1,11 +1,13 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2014-2020 The author and/or original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +17,19 @@
  */
 package org.codehaus.griffon.runtime.jpa;
 
+import griffon.annotations.core.Nonnull;
 import griffon.core.Configuration;
 import griffon.core.GriffonApplication;
 import griffon.core.injection.Injector;
 import griffon.plugins.jpa.JpaBootstrap;
 import griffon.plugins.jpa.JpaSettings;
 import griffon.plugins.jpa.JpaSettingsFactory;
+import griffon.plugins.jpa.events.JpaConnectEndEvent;
+import griffon.plugins.jpa.events.JpaConnectStartEvent;
+import griffon.plugins.jpa.events.JpaDisconnectEndEvent;
+import griffon.plugins.jpa.events.JpaDisconnectStartEvent;
 import org.codehaus.griffon.runtime.core.storage.AbstractObjectFactory;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
@@ -36,7 +42,6 @@ import java.util.Set;
 
 import static griffon.util.ConfigUtils.getConfigValue;
 import static griffon.util.GriffonNameUtils.requireNonBlank;
-import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -92,7 +97,7 @@ public class DefaultJpaSettingsFactory extends AbstractObjectFactory<JpaSettings
         requireNonBlank(name, ERROR_PERSISTENCE_UNIT_NAME_BLANK);
         Map<String, Object> config = narrowConfig(name);
 
-        event("JpaConnectStart", asList(name, config));
+        event(JpaConnectStartEvent.of(name, config));
 
         JpaSettings jpaSettings = createJpaSettings(config, name);
 
@@ -100,7 +105,7 @@ public class DefaultJpaSettingsFactory extends AbstractObjectFactory<JpaSettings
             ((JpaBootstrap) o).init(name, jpaSettings.getEntityManager());
         }
 
-        event("JpaConnectEnd", asList(name, config, jpaSettings.getEntityManager()));
+        event(JpaConnectEndEvent.of(name, config, jpaSettings.getEntityManager()));
 
         return jpaSettings;
     }
@@ -111,7 +116,7 @@ public class DefaultJpaSettingsFactory extends AbstractObjectFactory<JpaSettings
         requireNonNull(instance, "Argument 'instance' must not be null");
         Map<String, Object> config = narrowConfig(name);
 
-        event("JpaDisconnectStart", asList(name, config, instance.getEntityManager()));
+        event(JpaDisconnectStartEvent.of(name, config, instance.getEntityManager()));
 
         for (Object o : injector.getInstances(JpaBootstrap.class)) {
             ((JpaBootstrap) o).destroy(name, instance.getEntityManager());
@@ -120,7 +125,7 @@ public class DefaultJpaSettingsFactory extends AbstractObjectFactory<JpaSettings
         instance.getEntityManager().close();
         instance.getEntityManagerFactory().close();
 
-        event("JpaDisconnectEnd", asList(name, config));
+        event(JpaDisconnectEndEvent.of(name, config));
     }
 
     @Nonnull

@@ -1,11 +1,13 @@
 /*
- * Copyright 2014-2017 the original author or authors.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2014-2020 The author and/or original authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,24 +52,24 @@ public interface EntityManagerAwareConstants extends BaseConstants {
         method(
             type(VOID),
             METHOD_CLOSE_ENTITY_MANAGER,
-            args(annotatedType(types(type(JAVAX_ANNOTATION_NONNULL)), JAVA_LANG_STRING))
+            args(annotatedType(types(type(ANNOTATION_NONNULL)), JAVA_LANG_STRING))
         ),
 
         annotatedMethod(
-            annotations(JAVAX_ANNOTATION_NONNULL),
+            annotations(ANNOTATION_NONNULL),
             type(R),
             typeParams(R),
             METHOD_WITH_ENTITY_MANAGER,
-            args(annotatedType(annotations(JAVAX_ANNOTATION_NONNULL), ENTITY_MANAGER_CALLBACK_TYPE, R))
+            args(annotatedType(annotations(ANNOTATION_NONNULL), ENTITY_MANAGER_CALLBACK_TYPE, R))
         ),
         annotatedMethod(
-            types(type(JAVAX_ANNOTATION_NONNULL)),
+            types(type(ANNOTATION_NONNULL)),
             type(R),
             typeParams(R),
             METHOD_WITH_ENTITY_MANAGER,
             args(
-                annotatedType(annotations(JAVAX_ANNOTATION_NONNULL), JAVA_LANG_STRING),
-                annotatedType(annotations(JAVAX_ANNOTATION_NONNULL), ENTITY_MANAGER_CALLBACK_TYPE, R))
+                annotatedType(annotations(ANNOTATION_NONNULL), JAVA_LANG_STRING),
+                annotatedType(annotations(ANNOTATION_NONNULL), ENTITY_MANAGER_CALLBACK_TYPE, R))
         )
     };
 }
