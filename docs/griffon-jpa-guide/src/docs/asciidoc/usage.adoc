@@ -101,7 +101,7 @@ package com.acme;
 import griffon.plugins.jpa.JpaBootstrap;
 import griffon.core.injection.Module;
 import org.codehaus.griffon.runtime.core.injection.AbstractModule;
-import org.kordamp.jipsy.ServiceProviderFor;
+import org.kordamp.jipsy.annotations.ServiceProviderFor;
 
 @ServiceProviderFor(Module.class)
 public class ApplicationModule extends AbstractModule {
@@ -125,7 +125,7 @@ package com.acme;
 
 import griffon.core.artifact.GriffonService;
 import org.codehaus.griffon.runtime.core.artifact.AbstractGriffonService;
-import org.kordamp.jipsy.ServiceProviderFor;
+import org.kordamp.jipsy.annotations.ServiceProviderFor;
 
 import griffon.plugins.jpa.EntityManagerHandler;
 import griffon.plugins.jpa.EntityManagerCallback;
@@ -160,7 +160,7 @@ import griffon.core.artifact.GriffonService
 
 import griffon.plugins.jpa.EntityManagerHandler
 import javax.persistence.EntityManager
-import org.kordamp.jipsy.ServiceProviderFor
+import org.kordamp.jipsy.annotations.ServiceProviderFor
 
 import javax.inject.Inject
 
@@ -203,7 +203,7 @@ import griffon.metadata.ArtifactProviderFor
 import griffon.transform.EntityManagerAware
 
 import javax.persistence.EntityManager
-import org.kordamp.jipsy.ServiceProviderFor
+import org.kordamp.jipsy.annotations.ServiceProviderFor
 
 @EntityManagerAware
 @ServiceProviderFor(GriffonService)
